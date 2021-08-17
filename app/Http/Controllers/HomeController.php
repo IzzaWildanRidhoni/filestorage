@@ -36,13 +36,13 @@ class HomeController extends Controller
                 $files = $request->file('image');
                 
                 foreach ($files as $file ) {
-                    $name = time();
+                    $name = rand(1,999);
                     $extension = $file->getClientOriginalExtension();
                     $newName= $name.'.'.$extension;
                     // $path = $request->file('image')->storeAs('public',$newName);
                     // simpan file di folder photo
                     $size = $file->getClientSize();
-                    $path = Storage::putFileAs('public',$request->file('image'),$newName);
+                    $path = Storage::putFileAs('public',$file,$newName);
                     // dd($path);
 
                     // upload ke db
@@ -50,11 +50,16 @@ class HomeController extends Controller
                         'path' => 'storage/'.$newName,
                         'size' => $size,
                     ];
+
+                  Upload::create($data);
                 }
                 
+                return 'Success upload multiple';
+                
+            }
+            
+            return 'empty file';
 
-                return Upload::create($data);
-                }
             } catch (\Exception $e) {
                 $e->getMessage();
             }
