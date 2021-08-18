@@ -1,4 +1,4 @@
-# manipulasi filestorage di laravel
+# manipulasi filestorage di laravel 5.8
 
 ## **mengatur env dengan database**
 
