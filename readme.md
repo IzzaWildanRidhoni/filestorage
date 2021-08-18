@@ -1,72 +1,261 @@
-<p align="center"><img src="https://res.cloudinary.com/dtfbvvkyp/image/upload/v1566331377/laravel-logolockup-cmyk-red.svg" width="400"></p>
+# manipulasi filestorage di laravel
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+## **mengatur env dengan database**
 
-## About Laravel
+sebelum membuat program kita buat terlebih dahulu database kita di phpmyadmin dengan nama **db_laravel_filestorage**
+. kemudian kita ubah juga di dalam file env kita menjadi seperti ini
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=db_laravel_filestorage
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## **1. merubah welcome.blade.php**
 
-## Learning Laravel
+di program yang saya buat saya merubah `welcome.blade.php ` bagian content menjadi seperti ini
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```html
+<div class="content">
+    <div class="title m-b-md">Laravel</div>
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+        @csrf {{-- <input type="file" name="image" id="" /> --}} {{-- untuk
+        multiple upload --}}
+        <input type="file" name="image[]" id="" multiple="true" />
+        <button type="submit">Submit</button>
+    </form>
+</div>
+```
 
-## Laravel Sponsors
+> untuk melakukan upload secara massal dapat menambahkan `enctype` , `[]` dibagian name dan menambah kan `multiple="true"`.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+## **2. menambahkan route**
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- [UserInsights](https://userinsights.com)
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
-- [Invoice Ninja](https://www.invoiceninja.com)
-- [iMi digital](https://www.imi-digital.de/)
-- [Earthlink](https://www.earthlink.ro/)
-- [Steadfast Collective](https://steadfastcollective.com/)
-- [We Are The Robots Inc.](https://watr.mx/)
-- [Understand.io](https://www.understand.io/)
-- [Abdel Elrafa](https://abdelelrafa.com)
-- [Hyper Host](https://hyper.host)
+ubah route `web.php` menjadi
 
-## Contributing
+```php
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Route::get('/', function () {
+    return view('welcome');
+});
 
-## Security Vulnerabilities
+Route::get('index','HomeController@index');
+Route::post('upload','HomeController@upload');
+Route::get('list','HomeController@list');
+Route::get('show','HomeController@show');
+Route::get('copy','HomeController@copy');
+Route::get('move','HomeController@move');
+Route::get('download','HomeController@download');
+Route::get('delete','HomeController@delete');
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## **3.Membuat model dan migration**
 
-## License
+untuk membuat model sekaligus membuat migration bisa langsung menggunakan perintah
 
-The Laravel framework is open-source software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+php artisan make:model Upload -m
+```
+
+arti nya buatkan saya model **Upload** beserta migratinnya , nama class migrationnya akan otomatis menjadi **CreateUploadsTable**
+
+### **4.merubah file isi dari migartion _upload_**
+
+```php
+public function up(){
+        Schema::create('uploads', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('path');
+            $table->string('size');
+            $table->timestamps();
+        });
+    }
+```
+
+setelah dirubah lakukan
+
+```bash
+php artisan migrate
+```
+
+maka akan dibuatkan migrasi table **upload** di database kita
+
+### **5.membuat simlink**
+
+```artisan
+php artisan storage:link
+```
+
+maka akan dibuatkan simlink antara antara folder `storage/public/app` pada laravel , dengan `folder public/storage`
+
+###**6. merubah properti**
+
+```php
+use Illuminate\Contracts\Cache\Store;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;//memanggil storage
+use App\Upload; //memanggil model upload
+```
+
+### **7.Menampilkan data gambar**
+
+untuk menampiklan data saya membuat method `index` di dalam **HomeController**
+
+```php
+public function index()
+{
+    $files = Upload::all();
+    foreach ($files as $file ) {
+        echo '<img src="'.asset($file->path).'" alt="">';
+    }
+}
+```
+
+### **8.Membuat method upload**
+
+membuat method upload di `HomeController`
+
+```php
+public function upload(Request $request)
+    {
+        try {
+            // apakah ada file image?
+            if($request->hasFile('image')){
+
+
+                // $path = $request->file('image')->store('public');
+                // $path = Storage::putFile('public',$request->file('image'));
+
+
+                // custom nama
+                // $path = $request->file('image')->storeAs('public','gambar');
+
+                $files = $request->file('image');
+
+                foreach ($files as $file ) {
+                    $name = rand(1,999);
+                    $extension = $file->getClientOriginalExtension();
+                    $newName= $name.'.'.$extension;
+                    // $path = $request->file('image')->storeAs('public',$newName);
+                    $size = $file->getClientSize();
+
+                    // simpan file di folder public
+                    $path = Storage::putFileAs('public',$file,$newName);
+
+                    // dd($path);
+
+                    // upload ke db
+                    $data =[
+                        'path' => 'storage/'.$newName,
+                        'size' => $size,
+                    ];
+
+                  Upload::create($data);
+                }
+
+                return 'Success upload multiple';
+
+            }
+
+            return 'empty file';
+
+            } catch (\Exception $e) {
+                $e->getMessage();
+            }
+    }
+```
+
+### 9. **menampilkan file / directories**
+
+```php
+    public function list()
+    {
+        // mendapatkan file di storage
+        // $files = Storage::files('');
+        // $files = Storage::allFiles('public');
+        // $files = Storage::allFiles('');
+
+        // mendapatkan direktori di storage
+        // $files = Storage::directories('');
+        $directory = Storage::allDirectories('');
+
+        // membuat directory
+        // $directory = Storage::makeDirectory('image');
+        // $directory = Storage::makeDirectory('image/gif');
+
+        // menhapus directory
+        // $directory =  Storage::deleteDirectory('photo');
+        // $directory =  Storage::deleteDirectory('image/gif');
+        dd($directory);
+    }
+```
+
+### **10. memanipulasi data**
+
+_menampilkan, copy, move, download, dan delete_ gambar/file di laravel
+
+```php
+
+    public function show()
+    {
+        // menampilkan file
+        $path = Storage::url('1629089042.png');
+        return '<img src="'.$path.'"> ';
+        // return '<img src="'.asset('/storage/629089042.png').'"> ';
+    }
+
+    public function copy()
+    {
+        // copy image di folder storage
+        try {
+            // file yang akan di copy , nama file dan tujuan
+            Storage::copy('/public/1629089042.png','image/copy-image.png');
+            return 'success';
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function move()
+    {
+        // move image di folder storage
+        try {
+            // Storage::move('path',target)
+            Storage::move('image/copy-image.png','public/move-image.png');
+            return 'move success';
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function download()
+    {
+        try {
+           return Storage::disk('local')->download('public/upload/1629181583.png');
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function delete()
+    {
+        try {
+            Storage::disk('local')->delete('public/upload/1629181583.png');
+            return 'deleted';
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+    }
+```
+
+# finish
+
+```bash
+php artisan serve
+```
