@@ -37,7 +37,7 @@ di program yang saya buat saya merubah `welcome.blade.php ` bagian content menja
 
 ## **2. menambahkan route**
 
-ubah route `web.php` menjadi
+menambahkan route website kita tepatnya di dalam file `web.php` menjadi
 
 ```php
 
@@ -65,7 +65,9 @@ php artisan make:model Upload -m
 
 arti nya buatkan saya model **Upload** beserta migratinnya , nama class migrationnya akan otomatis menjadi **CreateUploadsTable**
 
-### **4.merubah file isi dari migartion _upload_**
+### **4.membuat struktur table upload**
+
+kita rubah struktur tabel tepatnya di method `up` di file `create_uploads_table`
 
 ```php
 public function up(){
@@ -94,7 +96,9 @@ php artisan storage:link
 
 maka akan dibuatkan simlink antara antara folder `storage/public/app` pada laravel , dengan `folder public/storage`
 
-###**6. merubah properti**
+### **6. merubah properti**
+
+merubah properti di `HomeController`
 
 ```php
 use Illuminate\Contracts\Cache\Store;
@@ -172,6 +176,8 @@ public function upload(Request $request)
 ```
 
 ### 9. **menampilkan file / directories**
+
+masih di `HomeController` tambahkan method list
 
 ```php
     public function list()
